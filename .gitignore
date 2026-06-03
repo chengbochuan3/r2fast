@@ -1,0 +1,19 @@
+# Secrets — never commit real credentials
+config.toml
+*.secret.toml
+.env
+.env.*
+
+# Build artifacts
+/r2fast
+/dist/
+*.exe
+*.app/
+R2Fast.app/
+
+# Node / Wrangler (worker/)
+node_modules/
+.wrangler/
+
+# macOS
+.DS_Store

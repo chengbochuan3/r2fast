@@ -1,0 +1,19 @@
+name = "r2fast-expiry"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+# Bind your R2 bucket. Change bucket_name to your bucket.
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "your-bucket"
+
+# The CLI puts precisely-expiring uploads under this key prefix and stamps each
+# with an `expire-at` (unix seconds) custom-metadata value. Keep this in sync
+# with `expire_prefix` in your r2fast config (default "e" -> "e/").
+[vars]
+EXPIRE_PREFIX = "e/"
+
+# Run every minute. Deleted objects leave the R2 origin immediately; Cloudflare's
+# edge cache may serve a stale copy for a short time afterward.
+[triggers]
+crons = ["* * * * *"]

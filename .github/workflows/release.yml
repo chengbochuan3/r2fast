@@ -1,0 +1,49 @@
+name: Release
+
+# Tag a commit (e.g. `git tag v0.1.0 && git push --tags`) to build binaries
+# for every platform and attach them to a GitHub Release.
+on:
+  push:
+    tags: [ 'v*' ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.goos }}/${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - { goos: darwin,  goarch: amd64 }
+          - { goos: darwin,  goarch: arm64 }
+          - { goos: linux,   goarch: amd64 }
+          - { goos: linux,   goarch: arm64 }
+          - { goos: windows, goarch: amd64 }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - name: Build & package
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          ext=""; [ "$GOOS" = windows ] && ext=".exe"
+          go build -trimpath \
+            -ldflags "-s -w -X github.com/chengbochuan3/r2fast/cmd.Version=${GITHUB_REF_NAME}" \
+            -o "r2fast${ext}" .
+          base="r2fast-${GITHUB_REF_NAME}-${GOOS}-${GOARCH}"
+          if [ "$GOOS" = windows ]; then
+            zip "${base}.zip" "r2fast${ext}" README.md LICENSE
+          else
+            tar -czf "${base}.tar.gz" "r2fast${ext}" README.md LICENSE
+          fi
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            r2fast-*.tar.gz
+            r2fast-*.zip
